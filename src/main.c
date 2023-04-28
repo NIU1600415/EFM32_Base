@@ -29,21 +29,36 @@
 #include "bsp.h"
 #include "bsp_trace.h"
 
-#include "i2c_multitask.h"
-#include "i2c.h"
+#include "apds9960.h"
 
 #define STACK_SIZE_FOR_TASK (configMINIMAL_STACK_SIZE + 10)
 #define TASK_PRIORITY (tskIDLE_PRIORITY + 1)
 
-#define APDS9960_ID 0x92 // APDS-9960 module ID I2C address
-
 static void I2C_Task() {
-	/* Init APDS-9960 identifier address */
-	BSP_I2C_Init(APDS9960_ID);
+	/* Init APDS-9960 I2C module */
+	if (APDS9960_Init()) {
+		printf("APDS-9960 initialization complete\n");
+	} else {
+		printf("Error during APDS-9960 init\n");
+	}
 
-	I2C_Test();
+	if (APDS9960_enableGestureSensor()) {
+		printf("APDS-9960 enable gestures successful\n");
+	} else {
+		printf("Error during APDS-9960 enable gestures\n");
+	}
 
-	while (1);
+	while (1) {
+		if (APDS9960_isGestureAvailable()) {
+			switch (APDS9960_readGesture()) {
+			case DIR_UP:
+				printf("UP\n");
+				break;
+			default:
+				printf("NONE\n");
+			}
+		}
+	}
 }
 
 /***************************************************************************//**
@@ -57,7 +72,7 @@ int main(void)
   BSP_TraceProfilerSetup();
 
   /* Initialize our I2C Multitask module */
-  I2C_Multitask_Init();
+  //I2C_Multitask_Init();
   /* Create main task */
   xTaskCreate(I2C_Task, (const char*) "I2C_Task", STACK_SIZE_FOR_TASK, NULL, TASK_PRIORITY, NULL);
 

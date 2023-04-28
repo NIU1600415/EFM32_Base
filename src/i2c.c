@@ -79,7 +79,7 @@ bool I2C_ReadRegister(uint8_t reg, uint8_t *val) {
 
 	while (I2C_Status == i2cTransferInProgress) {
 		/* Enable multitask */
-		uint8_t semaphore_obtained = 0;
+		/*uint8_t semaphore_obtained = 0;
 
 		// Request until semaphore obtained
 		while (semaphore_obtained == 0) {
@@ -91,11 +91,25 @@ bool I2C_ReadRegister(uint8_t reg, uint8_t *val) {
 		I2C_Status = I2C_Multitask_Transfer(I2C1);
 
 		// Release semaphore
-		I2C_Multitask_Give_Semaphore();
+		I2C_Multitask_Give_Semaphore();*/
+
+		I2C_Status = I2C_Transfer(I2C1);
 	}
 
 	if (I2C_Status != i2cTransferDone) {
-		return false;
+		if (I2C_Status == i2cTransferNack) {
+			return false;
+		} else if (I2C_Status == i2cTransferBusErr) {
+			return false;
+		} else if (I2C_Status == i2cTransferArbLost) {
+			return false;
+		} else if (I2C_Status == i2cTransferUsageFault) {
+			return false;
+		} else if (I2C_Status == i2cTransferSwFault) {
+			return false;
+		} else {
+			return false;
+		}
 	}
 
 	*val = data[0];
@@ -103,17 +117,14 @@ bool I2C_ReadRegister(uint8_t reg, uint8_t *val) {
 	return true;
 }
 
+void I2C_WriteByte(uint8_t val) {}
+
 bool I2C_Test() {
-	uint8_t data;
+	uint8_t id;
 
-	I2C_ReadRegister(0xD0, &data);
+	I2C_ReadRegister(0x92, &id);
 
-	printf("I2C: %02X\n", data);
+	printf("APDS-9960 ID: %x\n", id);
 
-	if (data == 0x60) {
-		return true;
-	} else {
-		return false;
-	}
-
+	return true;
 }
