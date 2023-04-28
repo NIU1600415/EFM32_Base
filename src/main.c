@@ -35,7 +35,12 @@
 #define STACK_SIZE_FOR_TASK (configMINIMAL_STACK_SIZE + 10)
 #define TASK_PRIORITY (tskIDLE_PRIORITY + 1)
 
+#define APDS9960_ID 0x92 // APDS-9960 module ID I2C address
+
 static void I2C_Task() {
+	/* Init APDS-9960 identifier address */
+	BSP_I2C_Init(APDS9960_ID);
+
 	I2C_Test();
 
 	while (1);
