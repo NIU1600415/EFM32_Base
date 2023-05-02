@@ -117,7 +117,40 @@ bool I2C_ReadRegister(uint8_t reg, uint8_t *val) {
 	return true;
 }
 
-void I2C_WriteByte(uint8_t val) {}
+/**
+ * @brief Read multiple values at register from I2C device
+ * @param reg Register to read
+ * @param data Buffer to read into
+ * @param len Buffer length
+ * @return true on success
+ */
+bool I2C_BlockReadRegister(uint8_t reg, uint8_t *data, uint16_t len) {
+	I2C_TransferReturn_TypeDef I2C_Status;
+	I2C_TransferSeq_TypeDef seq;
+
+	seq.addr = device_addr;
+	seq.flags = I2C_FLAG_WRITE_READ;
+
+	seq.buf[0].data = &reg;
+	seq.buf[0].len = 1;
+	seq.buf[1].data = data;
+	seq.buf[1].len = len;
+
+	I2C_Status = I2C_TransferInit(I2C1, &seq);
+
+	while (I2C_Status == i2cTransferInProgress)
+	{
+		// TODO: Semaphores
+		I2C_Status = I2C_Transfer(I2C1);
+	}
+
+	if (I2C_Status != i2cTransferDone)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 bool I2C_Test() {
 	uint8_t id;
