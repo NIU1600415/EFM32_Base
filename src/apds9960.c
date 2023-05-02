@@ -1,4 +1,4 @@
-#include "apds9960_new.h"
+#include "apds9960.h"
 #include "i2c.h"
 
 /**
