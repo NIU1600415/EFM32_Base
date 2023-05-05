@@ -122,9 +122,9 @@ bool I2C_ReadRegister(uint8_t reg, uint8_t *val) {
  * @param reg Register to read
  * @param data Buffer to read into
  * @param len Buffer length
- * @return true on success
+ * @return amount of elements read on success or -1 on error
  */
-bool I2C_BlockReadRegister(uint8_t reg, uint8_t *data, uint16_t len) {
+uint16_t I2C_BlockReadRegister(uint8_t reg, uint8_t *data, uint16_t len) {
 	I2C_TransferReturn_TypeDef I2C_Status;
 	I2C_TransferSeq_TypeDef seq;
 
@@ -146,10 +146,10 @@ bool I2C_BlockReadRegister(uint8_t reg, uint8_t *data, uint16_t len) {
 
 	if (I2C_Status != i2cTransferDone)
 	{
-		return false;
+		return -1;
 	}
 
-	return true;
+	return len;
 }
 
 bool I2C_Test() {

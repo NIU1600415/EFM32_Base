@@ -120,7 +120,7 @@ bool APDS9960_init()
 	{
 		return false;
 	}
-	if (!setGestureGain(DEFAULT_GGAIN))
+	if (!APDS9960_setGestureGain(DEFAULT_GGAIN))
 	{
 		return false;
 	}
@@ -531,7 +531,7 @@ int APDS9960_readGesture()
 	{
 
 		/* Wait some time to collect next batch of FIFO data */
-		delay(FIFO_PAUSE_TIME);
+		//delay(FIFO_PAUSE_TIME);
 
 		/* Get the contents of the STATUS register. Is data still valid? */
 		if (!I2C_ReadRegister(APDS9960_GSTATUS, &gstatus))
@@ -623,7 +623,7 @@ int APDS9960_readGesture()
 		{
 
 			/* Determine best guessed gesture and clean up */
-			delay(FIFO_PAUSE_TIME);
+			//delay(FIFO_PAUSE_TIME);
 			decodeGesture();
 			motion = gesture_motion_;
 #if DEBUG
@@ -868,8 +868,8 @@ bool processGestureData()
 		for (i = 0; i < gesture_data_.total_gestures; i++)
 		{
 			if ((gesture_data_.u_data[i] > GESTURE_THRESHOLD_OUT) &&
-							(gesture_data_.d_data[i] > GESTURE_THRESHOLD_OUT) ||
-					(gesture_data_.l_data[i] > GESTURE_THRESHOLD_OUT) &&
+							((gesture_data_.d_data[i] > GESTURE_THRESHOLD_OUT) ||
+					(gesture_data_.l_data[i] > GESTURE_THRESHOLD_OUT)) &&
 							(gesture_data_.r_data[i] > GESTURE_THRESHOLD_OUT))
 			{
 
@@ -896,8 +896,8 @@ bool processGestureData()
 			Serial.println(gesture_data_.r_data[i]);
 #endif
 			if ((gesture_data_.u_data[i] > GESTURE_THRESHOLD_OUT) &&
-							(gesture_data_.d_data[i] > GESTURE_THRESHOLD_OUT) ||
-					(gesture_data_.l_data[i] > GESTURE_THRESHOLD_OUT) &&
+							((gesture_data_.d_data[i] > GESTURE_THRESHOLD_OUT) ||
+					(gesture_data_.l_data[i] > GESTURE_THRESHOLD_OUT)) &&
 							(gesture_data_.r_data[i] > GESTURE_THRESHOLD_OUT))
 			{
 
