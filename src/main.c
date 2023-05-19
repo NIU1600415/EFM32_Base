@@ -58,20 +58,24 @@ void _write(const char *ptr) {
 	ITM_SendChar('\n');
 }
 
-int map(uint8_t x, float in_min, float in_max, float out_min, float out_max) {
+int mapDecimals(uint8_t x, float in_min, float in_max, float out_min, float out_max) {
 	return ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min) * 100;
 }
 
-float mapTruncate(uint8_t x, uint16_t min, uint16_t max, float in_min, float in_max, float out_min, float out_max) {
+uint8_t map(uint16_t x, float in_min, float in_max, float out_min, float out_max) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+float mapTruncate(uint8_t x, uint8_t min, uint8_t max, float in_min, float in_max, float out_min, float out_max) {
 	if (x >= max) {
-		return map(max, in_min, in_max, out_min, out_max);
+		return mapDecimals(max, in_min, in_max, out_min, out_max);
 	}
 
 	if (x <= min) {
-		return map(min, in_min, in_max, out_min, out_max);
+		return mapDecimals(min, in_min, in_max, out_min, out_max);
 	}
 
-	return map(x, in_min, in_max, out_min, out_max);
+	return mapDecimals(x, in_min, in_max, out_min, out_max);
 }
 
 float calculateProximity(uint8_t proxVal) {
@@ -117,7 +121,6 @@ static bool initAPDS9960Functions() {
 /* Read proxmity, rgb from sensor & add raw values to queue */
 static void Task_1() {
 	struct prox_rgb_raw send_values;
-	//char tmp[30];
 
 	while (1) {
 		APDS9960_readProximity(&send_values.prox);
@@ -153,14 +156,13 @@ static void Task_2() {
 			send_values.rgba_hex = 0;
 
 			// r
-			// INCORRECT VALUES!
-			send_values.rgba_hex |= (uint8_t)mapTruncate(read_values.light_red, 0, 37889, 37889, 0, 0, 255) << 24;
+			send_values.rgba_hex |= map(read_values.light_red, 0, 37889, 0, 255) << 24;
 			// g
-			send_values.rgba_hex |= (uint8_t)mapTruncate(read_values.light_green, 0, 37889, 37889, 0, 0, 255) << 16;
+			send_values.rgba_hex |= map(read_values.light_green, 0, 37889, 0, 255) << 16;
 			// b
-			send_values.rgba_hex |= (uint8_t)mapTruncate(read_values.light_blue, 0, 37889, 37889, 0, 0, 255) << 8;
+			send_values.rgba_hex |= map(read_values.light_blue, 0, 37889, 0, 255) << 8;
 			// a
-			send_values.rgba_hex |= (uint8_t)mapTruncate(read_values.light_ambient, 0, 37889, 37889, 0, 0, 255);
+			send_values.rgba_hex |= map(read_values.light_ambient, 0, 37889, 0, 255);
 
 			xQueueSend(queue_t2_t3, &send_values, 0);
 		}
@@ -177,7 +179,7 @@ static void Task_3() {
 
 	while (1) {
 		if (xQueueReceive(queue_t2_t3, &read_values, 0) == pdPASS) {
-			sprintf(tmp, "Prox: %s, Hex: %x\n", read_values.prox, (unsigned int)read_values.rgba_hex);
+			sprintf(tmp, "Prox: %s, Hex: %08x\n", read_values.prox, (unsigned int)read_values.rgba_hex);
 			_write(tmp);
 
 			if (led_status == 1 && read_values.prox_units > 8) {
