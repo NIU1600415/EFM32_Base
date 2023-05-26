@@ -15,6 +15,7 @@ void I2C_Multitask_Init() {
 		// Error
 	} else {
 		// OK
+		xSemaphoreGive(I2C_Semaphore); // Must give semaphore during init because it is empty
 	}
 }
 
@@ -31,8 +32,3 @@ uint8_t I2C_Multitask_Take_Semaphore() {
 void I2C_Multitask_Give_Semaphore() {
 	xSemaphoreGive(I2C_Semaphore);
 }
-
-I2C_TransferReturn_TypeDef I2C_Multitask_Transfer(I2C_TypeDef *i2c) {
-	return I2C_Transfer(i2c);
-}
-

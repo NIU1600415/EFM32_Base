@@ -9,6 +9,8 @@
 static uint8_t device_addr;
 
 void BSP_I2C_Init(uint8_t addr) {
+	I2C_Multitask_Init();
+
 	I2C_Init_TypeDef i2cInit = I2C_INIT_DEFAULT;
 	CMU_ClockEnable(cmuClock_I2C1, true);
 	GPIO_PinModeSet(gpioPortC, 4, gpioModeWiredAnd, 1);
@@ -79,21 +81,14 @@ bool I2C_ReadRegister(uint8_t reg, uint8_t *val) {
 
 	while (I2C_Status == i2cTransferInProgress) {
 		/* Enable multitask */
-		/*uint8_t semaphore_obtained = 0;
-
 		// Request until semaphore obtained
-		while (semaphore_obtained == 0) {
-			// Request semaphore
-			semaphore_obtained = I2C_Multitask_Take_Semaphore();
-		}
+		while (I2C_Multitask_Take_Semaphore() == 0);
 
 		// Have semaphore
-		I2C_Status = I2C_Multitask_Transfer(I2C1);
+		I2C_Status = I2C_Transfer(I2C1);
 
 		// Release semaphore
-		I2C_Multitask_Give_Semaphore();*/
-
-		I2C_Status = I2C_Transfer(I2C1);
+		I2C_Multitask_Give_Semaphore();
 	}
 
 	if (I2C_Status != i2cTransferDone) {
@@ -140,8 +135,15 @@ uint16_t I2C_BlockReadRegister(uint8_t reg, uint8_t *data, uint16_t len) {
 
 	while (I2C_Status == i2cTransferInProgress)
 	{
-		// TODO: Semaphores
+		/* Enable multitask */
+		// Request until semaphore obtained
+		while (I2C_Multitask_Take_Semaphore() == 0);
+
+		// Have semaphore
 		I2C_Status = I2C_Transfer(I2C1);
+
+		// Release semaphore
+		I2C_Multitask_Give_Semaphore();
 	}
 
 	if (I2C_Status != i2cTransferDone)
